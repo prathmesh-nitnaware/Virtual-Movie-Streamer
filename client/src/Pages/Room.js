@@ -68,32 +68,37 @@ function Room() {
       <div className="left-section">
         <h2 className="room-title">Room: <code>{roomId}</code></h2>
 
-        <div className="video-form">
-          <label>Paste MP4/YouTube Link</label>
-          <input
-            type="text"
-            className="room-input"
-            onChange={(e) => setVideoSrc(e.target.value)}
-            placeholder="https://example.com/video.mp4"
-          />
-          <label>Or Upload a Video</label>
-          <input
-            type="file"
-            className="room-input"
-            accept="video/mp4,video/webm"
-            onChange={(e) => {
-              const file = e.target.files[0];
-              if (file) {
-                const url = URL.createObjectURL(file);
-                setVideoSrc(url);
-              }
-            }}
-          />
-        </div>
+        {/* Host-only video selection */}
+        {isHost.current && (
+          <div className="video-form">
+            <label>Paste MP4/YouTube Link</label>
+            <input
+              type="text"
+              className="room-input"
+              onChange={(e) => setVideoSrc(e.target.value)}
+              placeholder="https://example.com/video.mp4"
+            />
+            <label>Or Upload a Video</label>
+            <input
+              type="file"
+              className="room-input"
+              accept="video/mp4,video/webm"
+              onChange={(e) => {
+                const file = e.target.files[0];
+                if (file) {
+                  const url = URL.createObjectURL(file);
+                  setVideoSrc(url);
+                }
+              }}
+            />
+          </div>
+        )}
 
-        {videoSrc && <VideoPlayer roomId={roomId} videoSrc={videoSrc} />}
+        {/* Video Player - All users see it, only host can control */}
+        {videoSrc && <VideoPlayer roomId={roomId} videoSrc={videoSrc} isHost={isHost.current} />}
         <VideoChat roomId={roomId} />
 
+        {/* Chat */}
         <div className="chat-box">
           <h5 className="chat-title">💬 Live Chat</h5>
           <div className="chat-messages">
@@ -112,6 +117,7 @@ function Room() {
           </div>
         </div>
 
+        {/* Host Controls */}
         {isHost.current && (
           <div className="host-controls">
             <button className="home-button" onClick={handleMuteAll}>🔇 Mute All</button>
