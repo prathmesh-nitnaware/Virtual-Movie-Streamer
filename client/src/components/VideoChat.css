@@ -1,0 +1,43 @@
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.video-wrapper {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  background-color: black;
+}
+
+.video {
+  width: 100%;
+  height: auto;
+  background: black;
+  border-radius: 10px;
+}
+
+.controls {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  display: flex;
+  gap: 10px;
+}
+
+.controls button {
+  background: #1f1f1f;
+  color: white;
+  border: 1px solid #a259ff;
+  font-size: 1.4rem;
+  padding: 6px 10px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.controls button:hover {
+  background-color: #a259ff;
+}

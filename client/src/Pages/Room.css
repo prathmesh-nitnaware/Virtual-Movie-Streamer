@@ -1,0 +1,154 @@
+/* Layout container */
+.main-container {
+  display: flex;
+  gap: 1.5rem;
+  padding: 2rem;
+  max-width: 100%;
+  color: #eaeaea;
+  background-color: #0d0d0d;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* Left section (video + chat) */
+.left-section {
+  flex: 1;
+  max-width: 900px;
+}
+
+/* Right section (participants) */
+.right-section {
+  width: 250px;
+  background-color: #161616;
+  border: 1px solid #2d2d2d;
+  padding: 1rem;
+  border-radius: 8px;
+  height: fit-content;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+/* Page title */
+.room-title {
+  font-weight: 700;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+/* Video link/upload form */
+.video-form {
+  background-color: #1e1e1e;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+
+.video-form label {
+  display: block;
+  margin-top: 10px;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.room-input {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  background-color: #1f1f1f;
+  color: #fff;
+  border: 1px solid #a259ff;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+/* Chat section */
+.chat-box {
+  background-color: #1a1a1a;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 2rem;
+}
+
+.chat-title {
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.chat-messages {
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: #111;
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
+
+.chat-message {
+  padding: 4px 0;
+  font-size: 0.9rem;
+}
+
+/* Chat input */
+.chat-input {
+  display: flex;
+  gap: 10px;
+}
+
+/* Purple send button */
+.home-button {
+  padding: 0.5rem 1.5rem;
+  background: transparent;
+  border: 1px solid #a259ff;
+  color: #fff;
+  font-weight: bold;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+}
+
+.home-button:hover {
+  background-color: #a259ff;
+  color: #fff;
+  cursor: pointer;
+}
+
+/* Participant list */
+.participant-box {
+  margin-bottom: 2rem;
+}
+
+.participant-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.participant-list li {
+  padding: 6px 0;
+  font-size: 0.9rem;
+  border-bottom: 1px solid #2d2d2d;
+}
+
+/* Responsive layout */
+@media (max-width: 768px) {
+  .main-container {
+    flex-direction: column;
+    padding: 1rem;
+  }
+
+  .right-section {
+    width: 100%;
+    margin-top: 1rem;
+  }
+
+  .chat-input {
+    flex-direction: column;
+  }
+
+  .home-button {
+    width: 100%;
+  }
+}
+
+.host-controls {
+  display: flex;
+  gap: 10px;
+  margin-top: 1rem;
+}
