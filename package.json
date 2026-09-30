@@ -1,0 +1,23 @@
+{
+  "name": "virtual-movie-streamer-monorepo",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Real-time synchronized cinema watch party with native WebRTC mesh video chat",
+  "scripts": {
+    "install:all": "npm install --prefix backend && npm install --prefix frontend",
+    "dev:backend": "npm start --prefix backend",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "build": "npm run build --prefix frontend",
+    "start": "npm start --prefix backend"
+  },
+  "keywords": [
+    "watch-party",
+    "movie-streaming",
+    "webrtc",
+    "socketio",
+    "react",
+    "vite"
+  ],
+  "author": "",
+  "license": "MIT"
+}
