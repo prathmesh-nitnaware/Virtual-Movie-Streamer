@@ -1,207 +1,187 @@
-# 🎥 Virtual Movie Streamer v2.0
+# WatchVerse
 
-> **Next-Generation Real-Time Collaborative Virtual Cinema**  
-> Watch synchronized videos with friends in perfect harmony, communicate via native peer-to-peer WebRTC video conferencing, enjoy live floating emoji reactions, and manage rooms with intelligent host moderation.
-
----
-
-## 🌟 Key Upgrades & Highlights (v2.0)
-
-| Feature | Legacy v1.0 | Upgraded v2.0 |
-| :--- | :--- | :--- |
-| **Frontend Tooling** | Deprecated CRA (`react-scripts 5.0.1`) | **Vite 6 + React 19** (instant HMR, fast builds) |
-| **Video Sync Engine** | Local unshared state; desync on join | **Server-Coordinated Millisecond Sync** with late-joiner catchup & drift correction |
-| **Media Support** | Local blob URL limitation | **Direct Streams (MP4, WebM, HLS), YouTube embeds, & Curated 4K/HD Demo Library** |
-| **WebRTC Video Mesh** | Broken `simple-peer` (payload mismatches, single peer ref) | **Native `RTCPeerConnection` Mesh** with Google STUN, multi-peer grid, and mic/cam fallback |
-| **Screen Sharing** | Not available | **1-Click Screen Sharing** into the room mesh |
-| **Host Moderation** | Mutating unrendered refs, orphaned rooms | **Reactive Host Crown 👑, Auto Host Migration**, Mute All, Mute User, and End Room |
-| **Interactive Social Layer** | Plain text box | **Live Floating Cinema Emoji Reactions (🍿, ❤️, 🔥, 🚀), Timestamps, & System Alerts** |
-| **Design & Aesthetics** | Plain monochromatic black boxes | **AMOLED Dark Cinema Theme with Glassmorphism, Neon Violet/Cyan Glows, & Google Fonts** |
+> **Watch together. Anywhere.**  
+> A real-time collaborative watch platform with server-coordinated playback synchronization, native P2P WebRTC audio/video conferencing, live chat, reactions, and role-based moderation.
 
 ---
 
-## 📁 Upgraded Project Structure
+## Capabilities & Architecture
 
-```
-Virtual-Movie-Streamer/
-├── package.json                   # Root monorepo workspace scripts
+| Component | Engineering Implementation |
+| :--- | :--- |
+| **Playback Synchronization** | Server-authoritative state with monotonic revision numbers (`stateVersion`), elapsed-time offset calculation for late joiners, periodic host heartbeats, and client drift correction. |
+| **Multi-Source Playback** | Native HTML5 media (MP4, WebM, HLS), official **YouTube IFrame API**, local file streaming via Object URLs, and WebVTT/SRT subtitle track support. |
+| **WebRTC Media Transport** | Decoupled `MediaTransport` interface with native `RTCPeerConnection` mesh, ICE candidate queueing, multi-STUN traversal, and screen sharing. |
+| **Role-Based Moderation** | `HOST`, `MODERATOR`, and `PARTICIPANT` hierarchy. Host controls include room locking, microphone muting, role assignment, and automatic host migration. |
+| **Social Communication** | Live chat with rate limiting and payload bounding, typing indicators, floating reactions, and Web Audio synthesized sound feedback. |
+| **Resilience & Security** | Reconnection recovery, CORS origin validation, server-side payload validation, and in-memory room lifecycle with auto-teardown. |
+
+---
+
+## Directory Structure
+
+```text
+WatchVerse/
+├── package.json                   # Root workspace scripts (build, test, dev)
 ├── Dockerfile                     # Multi-stage production container build
-├── docker-compose.yml             # Single-command container orchestration
-├── render.yaml                    # Render.com Blueprint infrastructure-as-code
-├── .gitignore                     # Root-level ignore rules
-├── .env.example                   # Master environment template
-├── DEPLOYMENT.md                  # Comprehensive production deployment manual
-├── README.md                      # Project documentation & architecture guide
+├── docker-compose.yml             # Container orchestration
+├── render.yaml                    # Render Blueprint infrastructure-as-code
+├── SYSTEM_DESIGN.md               # System architecture & sequence diagrams
+├── DEPLOYMENT.md                  # Production deployment manual
+├── README.md                      # Technical documentation
 │
-├── backend/                       # Modular Node.js + Express + Socket.IO Backend
+├── backend/                       # Node.js + Express + Socket.IO Backend
 │   ├── .env.example               # Backend environment variables
-│   ├── package.json               # Backend dependencies & production scripts
+│   ├── package.json               # Backend dependencies & test scripts
 │   ├── server.js                  # HTTP & WebSocket server entry point
+│   ├── tests/
+│   │   └── roomService.test.js    # Automated unit tests (10 suites)
 │   └── src/
-│       ├── app.js                 # Express configuration, security, & SPA static serving
+│       ├── app.js                 # Express configuration, CORS & SPA static serving
 │       ├── config/
-│       │   └── index.js           # Centralized ports, allowed origins, & STUN servers
+│       │   └── index.js           # Ports, allowed origins & STUN servers
 │       ├── controllers/
-│       │   ├── healthController.js# Uptime, memory, & health metrics
-│       │   └── roomController.js  # Room status & diagnostics REST API
+│       │   ├── healthController.js# System health & metrics REST API (/api/health)
+│       │   └── roomController.js  # Room diagnostics REST API (/api/rooms)
 │       ├── middlewares/
-│       │   ├── corsHandler.js     # Production CORS filter
+│       │   ├── corsHandler.js     # Production CORS origin filter
 │       │   └── errorHandler.js    # Centralized error handler
 │       ├── routes/
-│       │   └── api.js             # REST API router (/api/health, /api/rooms)
+│       │   └── api.js             # REST API router
 │       ├── services/
-│       │   └── roomService.js     # In-memory room manager, video state, & drift logic
+│       │   └── roomService.js     # Authoritative room state, roles & sync engine
 │       ├── sockets/
 │       │   ├── index.js           # Domain socket dispatcher
-│       │   ├── roomHandler.js     # Room lifecycle, join/leave, auto-host migration
-│       │   ├── videoHandler.js    # Play, pause, seek, playback-rate & heartbeat sync
-│       │   ├── webrtcHandler.js   # Native WebRTC signaling (offers, answers, ICE)
-│       │   └── chatHandler.js     # Text chat messages & floating emoji reactions
+│       │   ├── roomHandler.js     # Room lifecycle, moderation & migration
+│       │   ├── videoHandler.js    # Versioned video sync, seek & heartbeat
+│       │   ├── webrtcHandler.js   # WebRTC signaling (offers, answers, ICE)
+│       │   └── chatHandler.js     # Rate-limited chat & reactions
 │       └── utils/
-│           └── logger.js          # Timestamped structured logger
+│           └── logger.js          # Structured logger
 │
-└── frontend/                      # Modern Vite + React 19 Frontend
-    ├── index.html                 # Single-page HTML entry with Outfit & Inter typography
-    ├── vite.config.js             # Vite configuration with React plugin
+└── frontend/                      # Vite + React 19 Frontend
+    ├── index.html                 # HTML entry with Open Graph & Twitter metadata
+    ├── vite.config.js             # Vite configuration
     ├── vercel.json                # Vercel SPA routing rules & security headers
-    ├── package.json               # Modern dependencies (Lucide icons, Socket.IO client)
-    ├── .env.example               # Frontend environment variables
+    ├── package.json               # Frontend dependencies
     ├── public/
-    │   └── favicon.svg            # Custom cinema logo favicon
+    │   ├── favicon.svg            # WatchVerse brand icon
+    │   ├── og-image.svg           # Open Graph social preview
+    │   ├── robots.txt             # Web crawler configuration
+    │   └── sitemap.xml            # Sitemap for public routes
     └── src/
-        ├── App.jsx                # React Router v7 configuration
+        ├── App.jsx                # React Router v7 routes (/, /room/:id, /privacy, /terms, 404)
         ├── main.jsx               # React 19 root mount
         ├── api/
-        │   └── socket.js          # Resilient socket client with auto-reconnection
-        ├── constants/
-        │   ├── sampleMovies.js    # Curated 4K/HD streaming demo movie catalog
-        │   └── appConfig.js       # App constants, emojis, & sync intervals
+        │   └── socket.js          # Socket client with auto-reconnect
+        ├── assets/
+        │   └── sampleMovies.js    # Curated open-source video catalog
         ├── context/
-        │   └── RoomContext.jsx    # Unified room state, actions & real-time event hub
+        │   └── RoomContext.jsx    # Unified room state & event dispatcher
         ├── hooks/
-        │   └── useWebRTC.js       # Native WebRTC mesh hook with STUN & screen sharing
+        │   ├── useDocumentTitle.js# Dynamic document title & meta description sync
+        │   └── useWebRTC.js       # WebRTC transport hook
+        ├── services/
+        │   └── mediaTransport.js  # WebRTC MediaTransport abstraction (Mesh & SFU ready)
         ├── components/
+        │   ├── Common/
+        │   │   └── Footer.jsx     # Accessible footer with dynamic copyright
         │   ├── VideoPlayer/
-        │   │   ├── CinemaPlayer.jsx       # Multi-source player (Direct MP4/WebM + YouTube)
-        │   │   ├── PlayerControls.jsx     # Sleek custom controls (scrubber, volume, speed)
-        │   │   ├── MediaSelector.jsx      # Preset library picker & custom URL loader
-        │   │   └── FloatingReactions.jsx  # Floating animated reaction overlay
+        │   │   ├── CinemaPlayer.jsx       # Multi-source player (Direct MP4 + YouTube)
+        │   │   ├── PlayerControls.jsx     # Controls (scrubber, volume, speed, CC, PiP)
+        │   │   ├── MediaSelector.jsx      # Library, YouTube URL & local file loader
+        │   │   └── FloatingReactions.jsx  # Floating reaction canvas
         │   ├── VideoChat/
-        │   │   ├── VideoChatGrid.jsx      # Multi-user responsive video conferencing grid
-        │   │   └── PeerVideoCard.jsx      # Individual participant video with status badges
+        │   │   ├── VideoChatGrid.jsx      # Responsive camera & screen-share grid
+        │   │   └── PeerVideoCard.jsx      # Individual participant video card
         │   ├── Chat/
-        │   │   └── ChatBox.jsx            # Live chat with timestamps & quick emoji bar
+        │   │   └── ChatBox.jsx            # Live chat with rate limiting
         │   └── Room/
-        │       ├── RoomHeader.jsx         # Room ID badge, invite link copy, viewer counter
-        │       ├── ParticipantList.jsx    # Online viewers list with host moderation controls
-        │       └── HostControlsModal.jsx  # Host moderation modal
+        │       ├── RoomHeader.jsx         # Room navigation, invite copy, sound toggle
+        │       ├── ParticipantList.jsx    # Viewers list with moderation controls
+        │       └── HostControlsModal.jsx  # Moderation modal (Lock, Mute All, End Room)
         ├── pages/
-        │   ├── Home.jsx           # Stunning cinema landing page with instant watch launch
-        │   └── Room.jsx           # Immersive theater stage layout
+        │   ├── Home.jsx           # Landing page with Create & Join actions
+        │   ├── Room.jsx           # Theater room stage
+        │   ├── Privacy.jsx        # Ephemeral room & WebRTC privacy policy
+        │   ├── Terms.jsx          # Usage terms & media rights policy
+        │   └── NotFound.jsx       # Custom 404 error page
         ├── styles/
-        │   ├── index.css          # Design system, AMOLED dark theme & glassmorphism
-        │   ├── home.css           # Hero section & movie catalog styles
-        │   ├── room.css           # Theater stage, chat drawer & participant styles
+        │   ├── index.css          # Design tokens, typography & accessible focus rings
+        │   ├── home.css           # Home layout & responsive rules
+        │   ├── room.css           # Stage, chat drawer & participant styles
         │   └── player.css         # Cinema player controls & video grid styles
         └── utils/
-            ├── formatters.js      # Time formatting & string utilities
-            └── clipboard.js       # Robust clipboard copy helper with fallbacks
+            ├── soundEffects.js    # Web Audio API audio synthesis
+            ├── formatters.js      # Time formatting utilities
+            └── clipboard.js       # Clipboard copy helper
 ```
 
 ---
 
-## 🚀 Quick Start Guide
+## Getting Started
 
 ### Prerequisites
 - Node.js (v18+ or v20+)
 - npm (v9+)
 
-### 1. Install Dependencies
-You can install dependencies for both the frontend and backend using the workspace script from the root directory:
-
+### Installation
 ```bash
 npm run install:all
 ```
 
-*Or install individually:*
+### Development
+
+Run backend and frontend concurrently:
+
 ```bash
-# Backend
-cd backend
-npm install
-
-# Frontend
-cd ../frontend
-npm install
-```
-
----
-
-### 2. Configure Environment Variables (Optional)
-
-**Backend (`backend/.env`):**
-```env
-PORT=5000
-CLIENT_URL=http://localhost:5173,http://localhost:3000,https://virtual-movie-streamer.vercel.app
-```
-
-**Frontend (`frontend/.env`):**
-```env
-VITE_SOCKET_URL=http://localhost:5000
-```
-
----
-
-### 3. Run the Development Environment
-
-Open two terminal tabs:
-
-**Terminal 1 — Backend (Port 5000):**
-```bash
+# Terminal 1 - Backend (Port 5000)
 cd backend
 npm start
-```
 
-**Terminal 2 — Frontend (Port 5173):**
-```bash
+# Terminal 2 - Frontend (Port 5173)
 cd frontend
 npm run dev
 ```
 
-Open your browser at **`http://localhost:5173/`**.
+Visit **`http://localhost:5173/`**.
 
 ---
 
-## 🛠️ Architecture & How It Works
+## Testing
 
-### 1. Video Playback Synchronization Engine
-- **Host-Controlled Authority:** The room host has sole authority over playback (Play, Pause, Seek, Rate change, and Stream Switching).
-- **Elapsed-Time State Store:** The server stores playback state alongside an updated timestamp. When a late viewer joins, the server computes the exact playback offset so the video begins at the exact second the rest of the room is watching.
-- **Continuous Heartbeat:** The host emits a periodic sync heartbeat every few seconds. If a viewer experiences network buffering that causes drift (> 1.2s), the player automatically and smoothly aligns without user intervention.
-- **Autoplay Handling:** In compliance with modern browser autoplay policies, unmuted autoplay blocks are caught gracefully, displaying a 1-click **"Enable Audio & Sync"** prompt.
+Run the automated backend test suite:
 
-### 2. Native Mesh WebRTC Video Conferencing
-- Built on standard browser `RTCPeerConnection` without third-party wrapper dependencies.
-- Free Google STUN servers (`stun:stun.l.google.com:19302`) ensure reliable NAT traversal.
-- **Graceful Error Handling:** If a user lacks a camera or denies permissions, the app does not crash; instead, it renders an animated gradient avatar with initials and keeps movie audio/video and chat intact.
-- **Screen Sharing:** Participants or hosts can toggle screen sharing with one click to present slides, alternate video players, or documents directly into the room.
+```bash
+cd backend
+npm test
+```
 
-### 3. Smart Host Moderation & Migration
-- **First-To-Join Host Assignment:** The user who creates the room is assigned host privileges.
-- **Automatic Host Migration:** If the host disconnects or leaves, the server seamlessly promotes the next participant in the room to host and broadcasts a system notification.
-- **Moderation Tools:** Host can mute all participants, mute individual disruptive users, transfer host privileges, or close the room.
+Execute production bundle validation:
+
+```bash
+cd frontend
+npm run build
+```
 
 ---
 
-## 🚢 Deployment
+## Deployment
 
 ### Frontend (Vercel)
-- Set Framework to **Vite**.
-- Root directory: `client`.
-- Build command: `npm run build`.
-- Output directory: `dist`.
-- Environment Variable: `VITE_SOCKET_URL=https://your-backend.onrender.com`.
+- Framework Preset: **Vite**
+- Root Directory: `frontend`
+- Build Command: `npm run build`
+- Output Directory: `dist`
+- Environment Variable: `VITE_SOCKET_URL=https://your-backend.onrender.com`
 
-### Backend (Render / Railway / Heroku)
-- Root directory: `server`.
-- Start command: `node server.js`.
-- Environment Variable: `CLIENT_URL=https://your-frontend.vercel.app`.
+### Backend (Render / Docker)
+- Deploy `backend` directory or run `docker-compose up`
+- Start Command: `node server.js`
+- Environment Variable: `CLIENT_URL=https://your-frontend.vercel.app`
+- Health Endpoint: `GET /api/health`
+
+---
+
+## License
+MIT License.

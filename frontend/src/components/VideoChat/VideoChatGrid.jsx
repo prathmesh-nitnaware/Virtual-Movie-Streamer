@@ -18,7 +18,10 @@ import { useRoom } from '../../context/RoomContext';
 
 export function VideoChatGrid() {
   const { roomId, hostId, socketId, micForcedMuted } = useRoom();
-  const username = localStorage.getItem('vms_username') || `User-${socketId?.slice(0, 4) || 'me'}`;
+  const username =
+    localStorage.getItem('wv_username') ||
+    localStorage.getItem('vms_username') ||
+    `User-${socketId?.slice(0, 4) || 'me'}`;
 
   const {
     localStream,
@@ -33,14 +36,15 @@ export function VideoChatGrid() {
   } = useWebRTC(roomId, username, micForcedMuted);
 
   const [isFloating, setIsFloating] = useState(() => {
-    return localStorage.getItem('vms_video_floating') !== 'false';
+    const saved = localStorage.getItem('wv_video_floating') ?? localStorage.getItem('vms_video_floating');
+    return saved !== 'false';
   });
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const handleToggleFloating = () => {
     setIsFloating((prev) => {
       const next = !prev;
-      localStorage.setItem('vms_video_floating', String(next));
+      localStorage.setItem('wv_video_floating', String(next));
       return next;
     });
   };
@@ -59,6 +63,7 @@ export function VideoChatGrid() {
             className="video-chat-mode-btn"
             onClick={() => setIsCollapsed(!isCollapsed)}
             title={isCollapsed ? 'Expand Cameras' : 'Minimize Cameras'}
+            aria-label={isCollapsed ? 'Expand Cameras' : 'Minimize Cameras'}
           >
             <Users size={14} color="var(--accent-violet)" />
             <span>Cameras ({totalCount})</span>
@@ -79,6 +84,7 @@ export function VideoChatGrid() {
             className="btn-icon"
             onClick={handleToggleFloating}
             title={isFloating ? 'Dock cameras below cinema player' : 'Float cameras over cinema video'}
+            aria-label={isFloating ? 'Dock cameras below cinema player' : 'Float cameras over cinema video'}
             style={{
               width: 28,
               height: 28,
@@ -95,6 +101,7 @@ export function VideoChatGrid() {
             className="btn-icon"
             onClick={toggleMic}
             title={isMicOn ? 'Mute Microphone' : 'Unmute Microphone'}
+            aria-label={isMicOn ? 'Mute Microphone' : 'Unmute Microphone'}
             style={{
               width: 28,
               height: 28,
@@ -111,6 +118,7 @@ export function VideoChatGrid() {
             className="btn-icon"
             onClick={toggleCam}
             title={isCamOn ? 'Turn Camera Off' : 'Turn Camera On'}
+            aria-label={isCamOn ? 'Turn Camera Off' : 'Turn Camera On'}
             style={{
               width: 28,
               height: 28,
@@ -127,6 +135,7 @@ export function VideoChatGrid() {
             className="btn-icon"
             onClick={toggleScreenShare}
             title={isScreenSharing ? 'Stop Screen Share' : 'Share Screen'}
+            aria-label={isScreenSharing ? 'Stop Screen Share' : 'Share Screen'}
             style={{
               width: 28,
               height: 28,

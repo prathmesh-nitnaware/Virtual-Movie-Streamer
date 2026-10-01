@@ -1,143 +1,316 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import {
   Film,
-  Sparkles,
   Play,
   ArrowRight,
   ShieldCheck,
   Zap,
   Radio,
-  Video
+  Video,
+  Lock,
+  Globe,
+  Users,
+  Tv,
+  CheckCircle2
 } from 'lucide-react';
-import SAMPLE_MOVIES from '../assets/sampleMovies';
+import SAMPLE_MOVIES from '../constants/sampleMovies';
+import useDocumentTitle from '../hooks/useDocumentTitle';
+import Footer from '../components/Common/Footer';
+import WatchVerseLogo from '../components/Common/WatchVerseLogo';
 import '../styles/home.css';
 
 export function Home() {
+  useDocumentTitle(
+    'WatchVerse | Watch together. Anywhere.',
+    'Synchronized video playback with real-time WebRTC audio and video, live chat, and host moderation controls.'
+  );
+
+  const [activeTab, setActiveTab] = useState('create'); // 'create' | 'join'
+  const [usernameInput, setUsernameInput] = useState(() => localStorage.getItem('wv_username') || '');
+  const [roomNameInput, setRoomNameInput] = useState('');
   const [roomIdInput, setRoomIdInput] = useState('');
-  const [usernameInput, setUsernameInput] = useState(() => localStorage.getItem('vms_username') || '');
+  const [passwordInput, setPasswordInput] = useState('');
+  const [isPrivate, setIsPrivate] = useState(false);
+  const [selectedMovie, setSelectedMovie] = useState(null);
+
   const navigate = useNavigate();
 
-  const handleCreateRoom = (presetMovie) => {
-    const id = uuidv4().slice(0, 8);
+  const handleCreateRoom = (presetMovie = null) => {
+    const chosenMovie = presetMovie || selectedMovie;
+    const finalId = uuidv4().slice(0, 8);
     const finalUsername = usernameInput.trim() || `Host-${Math.floor(1000 + Math.random() * 9000)}`;
-    localStorage.setItem('vms_username', finalUsername);
-    if (presetMovie) {
-      sessionStorage.setItem('vms_initial_movie', JSON.stringify(presetMovie));
+    localStorage.setItem('wv_username', finalUsername);
+
+    if (chosenMovie) {
+      sessionStorage.setItem('wv_initial_movie', JSON.stringify(chosenMovie));
     }
-    navigate(`/room/${id}`);
+    if (passwordInput.trim() && isPrivate) {
+      sessionStorage.setItem(`wv_pass_${finalId}`, passwordInput.trim());
+    }
+
+    navigate(`/room/${finalId}`);
   };
 
   const handleJoinRoom = (e) => {
     e.preventDefault();
     if (!roomIdInput.trim()) return;
+    const finalId = roomIdInput.trim().replace(/^.*\/room\//, ''); // handle pasted full URLs
     const finalUsername = usernameInput.trim() || `Viewer-${Math.floor(1000 + Math.random() * 9000)}`;
-    localStorage.setItem('vms_username', finalUsername);
-    navigate(`/room/${roomIdInput.trim()}`);
+    localStorage.setItem('wv_username', finalUsername);
+
+    if (passwordInput.trim()) {
+      sessionStorage.setItem(`wv_pass_${finalId}`, passwordInput.trim());
+    }
+
+    navigate(`/room/${finalId}`);
   };
 
   return (
     <div className="home-page">
       {/* Top Navbar */}
-      <nav className="home-nav">
-        <a href="/" className="brand-logo">
-          <div className="brand-icon">
-            <Film size={22} />
-          </div>
-          <span>Virtual Movie Streamer</span>
-        </a>
+      <header className="home-nav-wrapper">
+        <div className="home-nav-container">
+          <Link to="/" className="brand-logo" aria-label="WatchVerse Home" style={{ textDecoration: 'none' }}>
+            <WatchVerseLogo size={32} />
+          </Link>
 
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          <span className="badge badge-live">
-            <Radio size={12} /> WebRTC v2.0 Active
-          </span>
+          <div className="nav-status-indicator">
+            <span className="status-dot"></span>
+            <span>Real-Time Sync Engine</span>
+          </div>
         </div>
-      </nav>
+      </header>
 
-      {/* Main Hero Container */}
-      <main className="home-hero">
-        <div className="hero-pill">
-          <Sparkles size={14} /> Next-Gen Collaborative Virtual Cinema
-        </div>
+      {/* Main Content Area */}
+      <main className="home-main-content">
+        {/* Asymmetric Hero Section */}
+        <section className="home-hero-section">
+          <div className="hero-grid">
+            {/* Left Column: Product Positioning & Headlines */}
+            <div className="hero-content">
+              <div className="hero-badge">
+                <Radio size={14} color="var(--accent-primary)" />
+                <span>Synchronized Video &amp; WebRTC Mesh</span>
+              </div>
 
-        <h1 className="hero-title">
-          Watch Movies Together, <br />
-          <span className="glow-text">In Perfect Sync.</span>
-        </h1>
+              <h1 className="hero-headline">
+                Watch together. <br />
+                Anywhere.
+              </h1>
 
-        <p className="hero-subtitle">
-          Host virtual movie nights with ultra-low latency playback sync, native multi-user
-          WebRTC video chat, live floating reactions, and complete host moderation.
-        </p>
+              <p className="hero-description">
+                Host synchronized cinema rooms with millisecond playback alignment, native browser audio and video communication, live chat, and authoritative host controls.
+              </p>
 
-        {/* Room Launch & Join Card */}
-        <div className="cinema-action-box">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textAlign: 'left', fontWeight: 600 }}>
-              Your Screen Name
-            </label>
-            <input
-              type="text"
-              placeholder="e.g. Alex (optional)"
-              className="input-field"
-              value={usernameInput}
-              onChange={(e) => setUsernameInput(e.target.value)}
-            />
+              <div className="hero-meta-row">
+                <div className="hero-meta-item">
+                  <CheckCircle2 size={15} color="var(--color-success)" />
+                  <span>Server-Authoritative Sync</span>
+                </div>
+                <div className="hero-meta-item">
+                  <CheckCircle2 size={15} color="var(--color-success)" />
+                  <span>P2P WebRTC Voice &amp; Video</span>
+                </div>
+                <div className="hero-meta-item">
+                  <CheckCircle2 size={15} color="var(--color-success)" />
+                  <span>MP4, HLS &amp; YouTube</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Primary Create / Join Room Action Surface */}
+            <div className="hero-action-panel">
+              <div className="panel-header">
+                <div className="action-tabs">
+                  <button
+                    type="button"
+                    className={`tab-btn ${activeTab === 'create' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('create')}
+                    aria-label="Create a new watch room"
+                  >
+                    <Play size={15} /> Create Room
+                  </button>
+                  <button
+                    type="button"
+                    className={`tab-btn ${activeTab === 'join' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('join')}
+                    aria-label="Join an existing watch room"
+                  >
+                    <Users size={15} /> Join Room
+                  </button>
+                </div>
+              </div>
+
+              <div className="panel-body">
+                <div>
+                  <label htmlFor="username-input" className="field-label">
+                    Your Display Name
+                  </label>
+                  <input
+                    id="username-input"
+                    type="text"
+                    placeholder="e.g. Alex"
+                    className="input-field"
+                    value={usernameInput}
+                    onChange={(e) => setUsernameInput(e.target.value)}
+                  />
+                </div>
+
+                {activeTab === 'create' ? (
+                  <>
+                    <div className="field-row">
+                      <div style={{ flex: 1 }}>
+                        <label htmlFor="roomname-input" className="field-label">
+                          Room Name (Optional)
+                        </label>
+                        <input
+                          id="roomname-input"
+                          type="text"
+                          placeholder="e.g. Friday Movie Night"
+                          className="input-field"
+                          value={roomNameInput}
+                          onChange={(e) => setRoomNameInput(e.target.value)}
+                        />
+                      </div>
+
+                      <div style={{ alignSelf: 'flex-end' }}>
+                        <button
+                          type="button"
+                          onClick={() => setIsPrivate(!isPrivate)}
+                          className={isPrivate ? 'btn-secondary active-toggle' : 'btn-secondary'}
+                          style={{ padding: '10px 14px', fontSize: '0.85rem' }}
+                          title="Toggle password protection"
+                          aria-label="Toggle password protection"
+                        >
+                          {isPrivate ? <Lock size={14} color="var(--color-warning)" /> : <Globe size={14} />}
+                          {isPrivate ? ' Password' : ' Public'}
+                        </button>
+                      </div>
+                    </div>
+
+                    {isPrivate && (
+                      <div>
+                        <label htmlFor="room-password-input" className="field-label">
+                          Room Password
+                        </label>
+                        <input
+                          id="room-password-input"
+                          type="password"
+                          placeholder="Set room password"
+                          className="input-field"
+                          value={passwordInput}
+                          onChange={(e) => setPasswordInput(e.target.value)}
+                        />
+                      </div>
+                    )}
+
+                    <button
+                      type="button"
+                      className="btn-primary action-submit-btn"
+                      onClick={() => handleCreateRoom()}
+                      aria-label="Create Watch Room"
+                    >
+                      <Play size={16} /> Create Watch Room
+                    </button>
+                  </>
+                ) : (
+                  <form onSubmit={handleJoinRoom} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <div>
+                      <label htmlFor="join-room-id" className="field-label">
+                        Room Code or Invite URL
+                      </label>
+                      <input
+                        id="join-room-id"
+                        type="text"
+                        required
+                        placeholder="e.g. AB12CD or https://domain/room/AB12CD"
+                        className="input-field"
+                        value={roomIdInput}
+                        onChange={(e) => setRoomIdInput(e.target.value)}
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="join-room-password" className="field-label">
+                        Password (If room is protected)
+                      </label>
+                      <input
+                        id="join-room-password"
+                        type="password"
+                        placeholder="Enter password (optional)"
+                        className="input-field"
+                        value={passwordInput}
+                        onChange={(e) => setPasswordInput(e.target.value)}
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="btn-primary action-submit-btn"
+                      aria-label="Join Watch Room"
+                    >
+                      Enter Watch Room <ArrowRight size={16} />
+                    </button>
+                  </form>
+                )}
+              </div>
+            </div>
           </div>
+        </section>
 
-          <div className="action-row">
-            <button className="btn-primary" style={{ flex: 1, padding: '14px 20px' }} onClick={() => handleCreateRoom()}>
-              <Play size={18} fill="#fff" /> Create New Theater
-            </button>
-          </div>
-
-          <div className="action-divider">
-            <span>Or join existing</span>
-          </div>
-
-          <form onSubmit={handleJoinRoom} className="action-row">
-            <input
-              type="text"
-              placeholder="Paste Room ID (e.g. e2a8b9f1)"
-              className="input-field"
-              value={roomIdInput}
-              onChange={(e) => setRoomIdInput(e.target.value)}
-              style={{ flex: 1 }}
-            />
-            <button type="submit" className="btn-secondary" style={{ padding: '12px 20px' }}>
-              Join <ArrowRight size={16} />
-            </button>
-          </form>
-        </div>
-
-        {/* Featured Sample Movies Quick Launch */}
-        <section className="preset-movies-section">
+        {/* Demo Video Catalog Section */}
+        <section className="catalog-section">
           <div className="section-header">
             <div>
-              <h3>Instant Watch Library</h3>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                Click any movie to launch a room instantly with that film pre-loaded
+              <h2 className="section-title">Demo Video Catalog</h2>
+              <p className="section-subtitle">
+                Select an open-source media stream to launch a synchronized room with sample media preloaded.
               </p>
             </div>
           </div>
 
           <div className="movie-cards-grid">
-            {SAMPLE_MOVIES.slice(0, 4).map((movie) => (
-              <div key={movie.id} className="movie-card" onClick={() => handleCreateRoom(movie)}>
-                <img src={movie.thumbnail} alt={movie.title} className="movie-card-thumb" />
+            {SAMPLE_MOVIES.map((movie) => (
+              <div
+                key={movie.id}
+                className="movie-card"
+                onClick={() => handleCreateRoom(movie)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleCreateRoom(movie);
+                  }
+                }}
+                aria-label={`Launch session with ${movie.title}`}
+              >
+                <div className="movie-card-thumb-wrapper">
+                  <img
+                    src={movie.thumbnail}
+                    alt={`${movie.title} thumbnail`}
+                    className="movie-card-thumb"
+                    loading="lazy"
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=800&auto=format&fit=crop&q=80';
+                    }}
+                  />
+                  <div className="movie-card-badge-overlay">
+                    <span className="card-badge">{movie.badge}</span>
+                  </div>
+                </div>
+
                 <div className="movie-card-content">
                   <div>
-                    <h4 className="movie-card-title">{movie.title}</h4>
-                    <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                      {movie.description}
-                    </p>
+                    <h3 className="movie-card-title">{movie.title}</h3>
+                    <p className="movie-card-desc">{movie.description}</p>
                   </div>
                   <div className="movie-card-meta">
-                    <span className="badge" style={{ background: 'rgba(139, 92, 246, 0.2)', color: '#c4b5fd' }}>
-                      {movie.badge}
-                    </span>
-                    <span>{movie.duration}</span>
+                    <span className="duration-tag">{movie.duration}</span>
+                    <span className="launch-action">Launch Room &rarr;</span>
                   </div>
                 </div>
               </div>
@@ -145,49 +318,62 @@ export function Home() {
           </div>
         </section>
 
-        {/* Feature Grid Highlights */}
-        <section className="features-grid">
-          <div className="feature-box">
-            <div className="feature-icon-wrapper">
-              <Zap size={22} />
+        {/* Architecture & Engineering Capabilities */}
+        <section className="features-section">
+          <div className="section-header">
+            <div>
+              <h2 className="section-title">Platform Capabilities</h2>
+              <p className="section-subtitle">
+                Engineered for sub-second synchronization and reliable browser-to-browser media delivery.
+              </p>
             </div>
-            <h4 className="feature-title">Millisecond Sync</h4>
-            <p className="feature-desc">
-              Server-coordinated timestamps ensure play, pause, seek, and playback rates stay tightly synchronized across all viewers without manual adjustment.
-            </p>
           </div>
 
-          <div className="feature-box">
-            <div className="feature-icon-wrapper">
-              <Video size={22} />
+          <div className="features-grid">
+            <div className="feature-box">
+              <div className="feature-icon-wrapper">
+                <Zap size={20} />
+              </div>
+              <h3 className="feature-title">Authoritative State Synchronization</h3>
+              <p className="feature-desc">
+                Server-managed monotonic revision numbering (stateVersion), periodic heartbeats, and late-join offset math maintain playback synchronization across all connected viewers.
+              </p>
             </div>
-            <h4 className="feature-title">Mesh WebRTC Video</h4>
-            <p className="feature-desc">
-              P2P crystal clear video and voice chat powered by native browser WebRTC with zero third-party plugin headaches and support for screen sharing.
-            </p>
-          </div>
 
-          <div className="feature-box">
-            <div className="feature-icon-wrapper">
-              <ShieldCheck size={22} />
+            <div className="feature-box">
+              <div className="feature-icon-wrapper">
+                <Video size={20} />
+              </div>
+              <h3 className="feature-title">WebRTC Mesh Communication</h3>
+              <p className="feature-desc">
+                Low-latency peer-to-peer audio, video, and screen sharing with ICE candidate queueing, multi-STUN traversal, and automatic fallback avatars.
+              </p>
             </div>
-            <h4 className="feature-title">Smart Host Controls</h4>
-            <p className="feature-desc">
-              First user becomes the host with full room moderation powers—mute participants, switch streams, or gracefully migrate host status if they leave.
-            </p>
-          </div>
 
-          <div className="feature-box">
-            <div className="feature-icon-wrapper">
-              <Sparkles size={22} />
+            <div className="feature-box">
+              <div className="feature-icon-wrapper">
+                <ShieldCheck size={20} />
+              </div>
+              <h3 className="feature-title">Role-Based Moderation</h3>
+              <p className="feature-desc">
+                Hierarchical role enforcement (Host, Moderator, Participant) with participant muting, room access locks, role delegation, and automatic host migration.
+              </p>
             </div>
-            <h4 className="feature-title">Live Emoji Reactions</h4>
-            <p className="feature-desc">
-              Express excitement during climax scenes with synchronized floating emoji bursts drifting up the cinema canvas in real-time.
-            </p>
+
+            <div className="feature-box">
+              <div className="feature-icon-wrapper">
+                <Tv size={20} />
+              </div>
+              <h3 className="feature-title">Multi-Source Playback Engine</h3>
+              <p className="feature-desc">
+                Native HTML5 direct playback (MP4, WebM, HLS), official YouTube IFrame API integration, local file streaming via Object URLs, and WebVTT/SRT subtitles.
+              </p>
+            </div>
           </div>
         </section>
       </main>
+
+      <Footer />
     </div>
   );
 }

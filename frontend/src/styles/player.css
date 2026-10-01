@@ -5,10 +5,9 @@
   flex: 1;
   min-height: 460px;
   max-height: calc(100vh - 90px);
-  background: #000;
+  background-color: #000;
   border-radius: var(--radius-md);
   overflow: hidden;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75);
   border: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
@@ -19,7 +18,7 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
-  background: #000;
+  background-color: #000;
   transform: none !important;
 }
 
@@ -47,14 +46,15 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(to top, rgba(7, 8, 14, 0.95) 0%, rgba(7, 8, 14, 0.6) 60%, transparent 100%);
-  padding: 1.5rem 1.25rem 0.75rem;
+  background-color: rgba(10, 12, 20, 0.92);
+  padding: 1rem 1rem 0.6rem;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   opacity: 0;
   transition: opacity var(--transition-fast);
   z-index: 20;
+  border-top: 1px solid var(--border-subtle);
 }
 
 .cinema-player-wrapper:hover .player-controls-overlay,
@@ -64,7 +64,7 @@
 
 .scrubber-container {
   width: 100%;
-  height: 18px;
+  height: 16px;
   display: flex;
   align-items: center;
   cursor: pointer;
@@ -74,10 +74,10 @@
 .scrubber-track {
   width: 100%;
   height: 4px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: var(--radius-full);
+  background-color: var(--border-muted);
+  border-radius: var(--radius-sm);
   position: relative;
-  transition: height 0.15s ease;
+  transition: height var(--transition-fast);
 }
 
 .scrubber-container:hover .scrubber-track {
@@ -86,22 +86,21 @@
 
 .scrubber-progress {
   height: 100%;
-  background: var(--accent-gradient);
-  border-radius: var(--radius-full);
+  background-color: var(--accent-primary);
+  border-radius: var(--radius-sm);
   position: relative;
 }
 
 .scrubber-thumb {
   position: absolute;
-  right: -6px;
+  right: -5px;
   top: 50%;
   transform: translateY(-50%) scale(0);
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 0 10px rgba(139, 92, 246, 0.8);
-  transition: transform 0.15s ease;
+  background-color: #fff;
+  transition: transform var(--transition-fast);
 }
 
 .scrubber-container:hover .scrubber-thumb {
@@ -117,12 +116,12 @@
 .controls-left, .controls-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .time-display {
   font-family: monospace;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   color: var(--text-secondary);
 }
 
@@ -133,8 +132,8 @@
 }
 
 .volume-slider {
-  width: 70px;
-  accent-color: var(--accent-violet);
+  width: 65px;
+  accent-color: var(--accent-primary);
   cursor: pointer;
   height: 4px;
 }
@@ -143,17 +142,17 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.75rem;
-  font-weight: 700;
+  font-size: 0.72rem;
+  font-weight: 600;
   color: #fcd34d;
-  background: rgba(245, 158, 11, 0.15);
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  padding: 2px 8px;
-  border-radius: var(--radius-full);
+  background-color: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
 }
 
 .participant-notice {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--text-muted);
 }
 
@@ -163,15 +162,14 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: rgba(13, 15, 26, 0.92);
-  border: 1px solid var(--accent-violet);
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-accent);
   border-radius: var(--radius-md);
-  padding: 1.25rem 2rem;
+  padding: 1.25rem 1.75rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+  gap: 10px;
   z-index: 22;
   text-align: center;
 }
@@ -179,34 +177,32 @@
 /* Video Chat Styles */
 .video-chat-section {
   width: 100%;
-  transition: all var(--transition-smooth);
+  transition: all var(--transition-fast);
 }
 
 /* Floating Overlay Mode (default) */
 .video-chat-floating {
   position: absolute;
-  bottom: 24px;
-  right: 24px;
+  bottom: 20px;
+  right: 20px;
   z-index: 35;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 8px;
-  max-width: calc(100% - 48px);
+  max-width: calc(100% - 40px);
 }
 
 .floating-cards-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   overflow-x: auto;
   max-width: 100%;
-  padding: 8px;
-  background: rgba(13, 15, 26, 0.88);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 6px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.7);
 }
 
 /* Docked Bottom Strip Mode */
@@ -221,10 +217,10 @@
 .docked-cards-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
   overflow-x: auto;
-  padding: 6px 0;
+  padding: 4px 0;
 }
 
 .video-chat-toolbar {
@@ -232,13 +228,11 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  background: rgba(18, 21, 36, 0.9);
-  backdrop-filter: blur(14px);
-  padding: 4px 10px;
-  border-radius: var(--radius-full);
+  background-color: var(--bg-surface);
+  padding: 4px 8px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--border-subtle);
   width: fit-content;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
 }
 
 .video-chat-mode-btn {
@@ -248,17 +242,17 @@
   background: transparent;
   border: none;
   color: var(--text-primary);
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 4px 6px;
   border-radius: var(--radius-sm);
-  transition: all var(--transition-fast);
+  transition: background-color var(--transition-fast);
 }
 
 .video-chat-mode-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background-color: var(--bg-card-hover);
 }
 
 .media-error-badge {
@@ -266,41 +260,38 @@
   align-items: center;
   gap: 4px;
   font-size: 0.72rem;
-  color: var(--accent-amber);
-  background: rgba(245, 158, 11, 0.12);
+  color: var(--color-warning);
+  background-color: rgba(245, 158, 11, 0.12);
   border: 1px solid rgba(245, 158, 11, 0.25);
-  padding: 2px 8px;
-  border-radius: var(--radius-full);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
 }
 
 /* Compact, proportional Peer Cards */
 .peer-card {
   position: relative;
-  width: 180px;
-  height: 112px;
-  min-width: 160px;
-  max-width: 200px;
+  width: 170px;
+  height: 106px;
+  min-width: 150px;
+  max-width: 190px;
   aspect-ratio: 16 / 10;
-  background: #0f111d;
+  background-color: var(--bg-secondary);
   border-radius: var(--radius-sm);
   overflow: hidden;
   border: 1px solid var(--border-subtle);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: transform var(--transition-fast), border-color var(--transition-fast);
+  transition: border-color var(--transition-fast);
 }
 
 .peer-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--accent-violet);
+  border-color: var(--border-accent);
 }
 
 .peer-card.speaking {
-  border-color: var(--accent-emerald);
-  box-shadow: 0 0 15px rgba(16, 185, 129, 0.35);
+  border-color: var(--color-success);
 }
 
 .peer-video {
@@ -316,16 +307,15 @@
 
 .peer-card-overlay {
   position: absolute;
-  bottom: 6px;
-  left: 6px;
-  right: 6px;
+  bottom: 4px;
+  left: 4px;
+  right: 4px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(6px);
-  padding: 3px 8px;
-  border-radius: 4px;
+  background-color: rgba(10, 12, 20, 0.85);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
   font-size: 0.72rem;
   color: #fff;
   z-index: 10;
@@ -339,14 +329,64 @@
 }
 
 .avatar-large {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  background: var(--accent-gradient);
+  background-color: var(--accent-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.15rem;
+  font-size: 1rem;
   font-weight: 700;
   color: #fff;
+}
+
+/* Responsive Player Controls */
+@media (max-width: 768px) {
+  .cinema-player-wrapper {
+    min-height: 260px;
+  }
+
+  .player-controls-overlay {
+    padding: 0.75rem 0.75rem 0.5rem;
+  }
+
+  .controls-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .controls-left, .controls-right {
+    gap: 8px;
+  }
+
+  .volume-slider {
+    width: 50px;
+  }
+}
+
+@media (max-width: 480px) {
+  .cinema-player-wrapper {
+    min-height: 200px;
+  }
+
+  .host-badge-small, .participant-notice {
+    display: none;
+  }
+
+  .time-display {
+    font-size: 0.75rem;
+  }
+
+  .peer-card {
+    width: 120px;
+    height: 76px;
+    min-width: 110px;
+  }
+
+  .video-chat-floating {
+    bottom: 10px;
+    right: 10px;
+    max-width: calc(100% - 20px);
+  }
 }

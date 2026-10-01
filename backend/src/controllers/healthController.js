@@ -1,17 +1,18 @@
 const os = require('os');
+const roomService = require('../services/roomService');
 
 function getHealth(req, res) {
+  const roomsSummary = roomService.getAllRoomsSummary();
   res.json({
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    service: 'Virtual Movie Streamer API',
+    status: 'ok',
+    service: 'WatchVerse Backend API',
+    tagline: 'Watch together. Anywhere.',
+    version: '1.0.0',
+    environment: process.env.NODE_ENV || 'development',
     uptimeSeconds: Math.floor(process.uptime()),
-    memoryUsageMB: Math.round(process.memoryUsage().rss / 1024 / 1024),
-    system: {
-      platform: process.platform,
-      nodeVersion: process.version,
-      cpuCount: os.cpus().length
-    }
+    activeRooms: roomsSummary.length,
+    activeUsers: roomsSummary.reduce((acc, r) => acc + (r.viewerCount || 0), 0),
+    timestamp: new Date().toISOString()
   });
 }
 

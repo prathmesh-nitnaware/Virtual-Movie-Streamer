@@ -24,7 +24,7 @@ export function ChatBox() {
   return (
     <div className="chat-container">
       {/* Messages Scroll Area */}
-      <div className="chat-messages-area">
+      <div className="chat-messages-area" role="log" aria-live="polite" aria-label="Chat messages">
         {chatMessages.length === 0 ? (
           <div style={{ textAlign: 'center', color: 'var(--text-muted)', marginTop: '2rem', fontSize: '0.85rem' }}>
             🍿 Theater chat is quiet. Say hello!
@@ -59,13 +59,15 @@ export function ChatBox() {
       </div>
 
       {/* Floating Reactions Quick Bar */}
-      <div className="quick-reactions-bar">
+      <div className="quick-reactions-bar" aria-label="Reaction emojis">
         {QUICK_EMOJIS.map((emoji) => (
           <button
             key={emoji}
+            type="button"
             className="reaction-btn"
             onClick={() => sendReaction(emoji)}
             title={`React with ${emoji}`}
+            aria-label={`Send reaction ${emoji}`}
           >
             {emoji}
           </button>
@@ -80,9 +82,10 @@ export function ChatBox() {
           placeholder="Type a message..."
           value={text}
           onChange={(e) => setText(e.target.value)}
+          aria-label="Type a chat message"
           style={{ padding: '8px 12px', fontSize: '0.9rem' }}
         />
-        <button type="submit" className="btn-primary" style={{ padding: '8px 14px' }}>
+        <button type="submit" className="btn-primary" aria-label="Send message" style={{ padding: '8px 14px' }}>
           <Send size={16} />
         </button>
       </form>

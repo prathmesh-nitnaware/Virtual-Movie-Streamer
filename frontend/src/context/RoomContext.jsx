@@ -1,53 +1,89 @@
 import React, { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
 import socket from '../api/socket';
+import soundEffects from '../utils/soundEffects';
 
 const RoomContext = createContext(null);
 
-export function RoomProvider({ roomId, username, children }) {
+export function RoomProvider({ roomId, username, password, children }) {
+  const [roomName, setRoomName] = useState('');
   const [users, setUsers] = useState([]);
+  const [userRole, setUserRole] = useState('PARTICIPANT'); // 'HOST' | 'MODERATOR' | 'PARTICIPANT'
   const [isHost, setIsHost] = useState(false);
   const [hostId, setHostId] = useState(null);
   const [hostName, setHostName] = useState('');
+  const [isLocked, setIsLocked] = useState(false);
+  const [hasPassword, setHasPassword] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState('connecting'); // 'connected' | 'reconnecting' | 'disconnected'
+  const [joinError, setJoinError] = useState(null);
+
   const [videoState, setVideoState] = useState({
+    mediaId: 'default',
     url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
     title: 'Big Buck Bunny (Animation 4K)',
     type: 'direct',
+    subtitleUrl: null,
     isPlaying: false,
     currentTime: 0,
-    playbackRate: 1
+    playbackRate: 1,
+    stateVersion: 1
   });
+
   const [chatMessages, setChatMessages] = useState([]);
   const [reactions, setReactions] = useState([]);
   const [roomEndedMessage, setRoomEndedMessage] = useState(null);
   const [systemAlert, setSystemAlert] = useState(null);
   const [micForcedMuted, setMicForcedMuted] = useState(false);
 
-  // Connect socket and register listeners on room mount
+  const localStateVersion = useRef(1);
+
+  // Auto-reconnect & join handling
   useEffect(() => {
     if (!roomId) return;
 
-    if (!socket.connected) {
-      socket.connect();
-    }
-
     const currentName = username || `Viewer-${Math.floor(1000 + Math.random() * 9000)}`;
 
-    socket.emit('join-room', {
-      roomId,
-      username: currentName
-    });
+    const performJoin = () => {
+      setConnectionStatus('connected');
+      socket.emit('join-room', {
+        roomId,
+        username: currentName,
+        password: password || null
+      });
+    };
+
+    if (!socket.connected) {
+      socket.connect();
+    } else {
+      performJoin();
+    }
+
+    const onConnect = () => {
+      performJoin();
+    };
+
+    const onDisconnect = () => {
+      setConnectionStatus('reconnecting');
+    };
+
+    const onJoinError = ({ message }) => {
+      setJoinError(message || 'Failed to enter theater.');
+    };
 
     // Handle full initial room state from server
     const handleRoomState = (state) => {
+      setJoinError(null);
+      setRoomName(state.roomName || `Room ${roomId}`);
       setHostId(state.hostId);
       setHostName(state.hostName);
+      setUserRole(state.userRole || (state.isHost ? 'HOST' : 'PARTICIPANT'));
       setIsHost(state.isHost);
+      setIsLocked(Boolean(state.isLocked));
+      setHasPassword(Boolean(state.hasPassword));
       setUsers(state.users || []);
+
       if (state.videoState) {
-        setVideoState((prev) => ({
-          ...prev,
-          ...state.videoState
-        }));
+        localStateVersion.current = state.videoState.stateVersion || 1;
+        setVideoState(state.videoState);
       }
       if (state.chatHistory) {
         setChatMessages(state.chatHistory);
@@ -59,7 +95,8 @@ export function RoomProvider({ roomId, username, children }) {
       setUsers(updatedUsers);
       const me = updatedUsers.find((u) => u.id === socket.id);
       if (me) {
-        setIsHost(me.isHost);
+        setIsHost(me.isHost || me.role === 'HOST');
+        setUserRole(me.role || (me.isHost ? 'HOST' : 'PARTICIPANT'));
       }
     };
 
@@ -67,12 +104,33 @@ export function RoomProvider({ roomId, username, children }) {
     const handleHostChanged = ({ newHostId, newHostName, users: updatedUsers }) => {
       setHostId(newHostId);
       setHostName(newHostName);
-      setIsHost(newHostId === socket.id);
+      const isMe = newHostId === socket.id;
+      setIsHost(isMe);
+      if (isMe) setUserRole('HOST');
       if (updatedUsers) setUsers(updatedUsers);
     };
 
-    // Video state changes (play, pause, seek, rate)
+    // Role update for self
+    const handleRoleUpdated = ({ role }) => {
+      setUserRole(role);
+      setIsHost(role === 'HOST');
+    };
+
+    // Room lock change
+    const handleRoomLockChanged = ({ isLocked: locked }) => {
+      setIsLocked(locked);
+    };
+
+    // Versioned video state changes (play, pause, seek, rate)
     const handleVideoState = (remoteState) => {
+      // Discard stale out-of-order state if version is older
+      if (remoteState.stateVersion && remoteState.stateVersion < localStateVersion.current) {
+        return;
+      }
+      if (remoteState.stateVersion) {
+        localStateVersion.current = remoteState.stateVersion;
+      }
+
       setVideoState((prev) => ({
         ...prev,
         ...remoteState,
@@ -82,6 +140,9 @@ export function RoomProvider({ roomId, username, children }) {
 
     // Video source changed by host
     const handleVideoChanged = (newSource) => {
+      if (newSource.stateVersion) {
+        localStateVersion.current = newSource.stateVersion;
+      }
       setVideoState((prev) => ({
         ...prev,
         ...newSource
@@ -89,9 +150,11 @@ export function RoomProvider({ roomId, username, children }) {
     };
 
     // Periodic sync heartbeat from host
-    const handleSyncHeartbeat = ({ currentTime, isPlaying }) => {
+    const handleSyncHeartbeat = ({ currentTime, isPlaying, stateVersion }) => {
+      if (stateVersion && stateVersion < localStateVersion.current) {
+        return;
+      }
       setVideoState((prev) => {
-        // Only update if difference is noticeable (> 1.2s drift) to prevent jitter
         const diff = Math.abs(prev.currentTime - currentTime);
         if (diff > 1.2 || prev.isPlaying !== isPlaying) {
           return { ...prev, currentTime, isPlaying };
@@ -103,26 +166,34 @@ export function RoomProvider({ roomId, username, children }) {
     // Real-time chat messages
     const handleReceiveMessage = (message) => {
       setChatMessages((prev) => [...prev, message]);
+      if (message.senderId !== socket.id) {
+        soundEffects.playChatPing();
+      }
     };
 
     // Floating emoji reaction
     const handleNewReaction = (reaction) => {
       setReactions((prev) => [...prev, reaction]);
-      // Remove reaction after 3 seconds when animation completes
+      soundEffects.playPopcornSound();
       setTimeout(() => {
         setReactions((prev) => prev.filter((r) => r.id !== reaction.id));
       }, 3000);
     };
 
+    // User joined room chime
+    const handleUserJoined = () => {
+      soundEffects.playJoinSound();
+    };
+
     // Moderation events
     const handleForceMute = () => {
       setMicForcedMuted(true);
-      setSystemAlert('You were muted by the room host.');
+      setSystemAlert('You were muted by a theater moderator.');
       setTimeout(() => setSystemAlert(null), 4000);
     };
 
     const handleRoomEnded = ({ reason }) => {
-      setRoomEndedMessage(reason || 'The host has ended this room.');
+      setRoomEndedMessage(reason || 'The host has ended this theater session.');
     };
 
     const handleErrorMsg = (msg) => {
@@ -130,9 +201,15 @@ export function RoomProvider({ roomId, username, children }) {
       setTimeout(() => setSystemAlert(null), 4000);
     };
 
+    socket.on('connect', onConnect);
+    socket.on('disconnect', onDisconnect);
+    socket.on('join-error', onJoinError);
     socket.on('room-state', handleRoomState);
     socket.on('room-users', handleRoomUsers);
+    socket.on('user-joined-room', handleUserJoined);
     socket.on('host-changed', handleHostChanged);
+    socket.on('role-updated', handleRoleUpdated);
+    socket.on('room-lock-changed', handleRoomLockChanged);
     socket.on('video-state', handleVideoState);
     socket.on('video-changed', handleVideoChanged);
     socket.on('sync-heartbeat', handleSyncHeartbeat);
@@ -144,9 +221,15 @@ export function RoomProvider({ roomId, username, children }) {
     socket.on('error-msg', handleErrorMsg);
 
     return () => {
+      socket.off('connect', onConnect);
+      socket.off('disconnect', onDisconnect);
+      socket.off('join-error', onJoinError);
       socket.off('room-state', handleRoomState);
       socket.off('room-users', handleRoomUsers);
+      socket.off('user-joined-room', handleUserJoined);
       socket.off('host-changed', handleHostChanged);
+      socket.off('role-updated', handleRoleUpdated);
+      socket.off('room-lock-changed', handleRoomLockChanged);
       socket.off('video-state', handleVideoState);
       socket.off('video-changed', handleVideoChanged);
       socket.off('sync-heartbeat', handleSyncHeartbeat);
@@ -157,7 +240,7 @@ export function RoomProvider({ roomId, username, children }) {
       socket.off('room-ended', handleRoomEnded);
       socket.off('error-msg', handleErrorMsg);
     };
-  }, [roomId, username]);
+  }, [roomId, username, password]);
 
   // Video Control Methods (Host Only)
   const emitVideoControl = useCallback(
@@ -172,9 +255,9 @@ export function RoomProvider({ roomId, username, children }) {
   );
 
   const changeVideoSource = useCallback(
-    (url, title, type) => {
+    (url, title, type, subtitleUrl) => {
       if (!isHost) return;
-      socket.emit('change-video', { roomId, url, title, type });
+      socket.emit('change-video', { roomId, url, title, type, subtitleUrl });
     },
     [roomId, isHost]
   );
@@ -187,7 +270,6 @@ export function RoomProvider({ roomId, username, children }) {
     [roomId, isHost]
   );
 
-  // Participant asks for sync
   const requestSync = useCallback(() => {
     socket.emit('request-sync', { roomId });
   }, [roomId]);
@@ -209,18 +291,41 @@ export function RoomProvider({ roomId, username, children }) {
   );
 
   // Moderation Methods
+  const isModerator = userRole === 'HOST' || userRole === 'MODERATOR';
+
   const muteAll = useCallback(() => {
-    if (!isHost) return;
+    if (!isModerator) return;
     socket.emit('mute-all', { roomId });
-  }, [roomId, isHost]);
+  }, [roomId, isModerator]);
 
   const muteUser = useCallback(
     (targetId) => {
-      if (!isHost) return;
+      if (!isModerator) return;
       socket.emit('mute-user', { roomId, targetId });
+    },
+    [roomId, isModerator]
+  );
+
+  const kickUser = useCallback(
+    (targetId) => {
+      if (!isModerator) return;
+      socket.emit('kick-user', { roomId, targetId });
+    },
+    [roomId, isModerator]
+  );
+
+  const setRole = useCallback(
+    (targetId, role) => {
+      if (!isHost) return;
+      socket.emit('set-role', { roomId, targetId, role });
     },
     [roomId, isHost]
   );
+
+  const toggleRoomLock = useCallback(() => {
+    if (!isHost) return;
+    socket.emit('toggle-room-lock', { roomId });
+  }, [roomId, isHost]);
 
   const transferHost = useCallback(
     (targetId) => {
@@ -238,10 +343,17 @@ export function RoomProvider({ roomId, username, children }) {
   const value = {
     socketId: socket.id,
     roomId,
+    roomName,
     users,
+    userRole,
     isHost,
+    isModerator,
     hostId,
     hostName,
+    isLocked,
+    hasPassword,
+    connectionStatus,
+    joinError,
     videoState,
     setVideoState,
     chatMessages,
@@ -258,6 +370,9 @@ export function RoomProvider({ roomId, username, children }) {
     sendReaction,
     muteAll,
     muteUser,
+    kickUser,
+    setRole,
+    toggleRoomLock,
     transferHost,
     endRoom
   };

@@ -1,19 +1,24 @@
 {
-  "name": "virtual-movie-streamer-backend",
-  "version": "2.0.0",
+  "name": "watchverse-backend",
+  "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --test tests/**/*.test.js",
     "start": "node server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "watchverse",
+    "backend",
+    "socketio",
+    "webrtc"
+  ],
+  "author": "WatchVerse Team",
+  "license": "MIT",
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^18.0.3",
     "express": "^5.1.0",
     "socket.io": "^4.8.1"
   },
-  "description": ""
+  "description": "WatchVerse real-time WebSocket signaling, synchronization & room management service"
 }

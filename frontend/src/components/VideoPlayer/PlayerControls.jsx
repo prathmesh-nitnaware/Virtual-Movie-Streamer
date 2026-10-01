@@ -8,8 +8,9 @@ import {
   Minimize2,
   Crown,
   RotateCcw,
-  Sparkles,
-  PictureInPicture2
+  PictureInPicture2,
+  Subtitles,
+  FlipHorizontal
 } from 'lucide-react';
 import { formatTime } from '../../utils/formatters';
 
@@ -24,6 +25,8 @@ export function PlayerControls({
   isFullscreen,
   isFlipped,
   isPiP,
+  hasSubtitles,
+  showSubtitles,
   onPlayPause,
   onSeek,
   onVolumeChange,
@@ -32,10 +35,9 @@ export function PlayerControls({
   onToggleFullscreen,
   onToggleFlip,
   onTogglePiP,
+  onToggleSubtitles,
   onRequestSync
 }) {
-  const [hoverTime, setHoverTime] = useState(null);
-
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   const handleScrubberClick = (e) => {
@@ -54,6 +56,11 @@ export function PlayerControls({
         className="scrubber-container"
         onClick={handleScrubberClick}
         title={isHost ? 'Seek playback' : 'Only host can seek'}
+        aria-label={isHost ? 'Seek playback position' : 'Playback scrubber (Host controlled)'}
+        role={isHost ? 'slider' : 'progressbar'}
+        aria-valuenow={currentTime}
+        aria-valuemin={0}
+        aria-valuemax={duration || 0}
         style={{ cursor: isHost ? 'pointer' : 'default' }}
       >
         <div className="scrubber-track">
@@ -69,18 +76,22 @@ export function PlayerControls({
           {/* Play/Pause (Host) or Sync indicator (Viewer) */}
           {isHost ? (
             <button
+              type="button"
               className="btn-icon"
               onClick={onPlayPause}
               title={isPlaying ? 'Pause Video' : 'Play Video'}
+              aria-label={isPlaying ? 'Pause Video' : 'Play Video'}
               style={{ background: 'var(--accent-gradient)' }}
             >
               {isPlaying ? <Pause size={18} /> : <Play size={18} fill="#fff" />}
             </button>
           ) : (
             <button
+              type="button"
               className="btn-icon"
               onClick={onRequestSync}
               title="Resync video with host"
+              aria-label="Resync video playback with host"
             >
               <RotateCcw size={16} />
             </button>
@@ -88,7 +99,14 @@ export function PlayerControls({
 
           {/* Volume Control */}
           <div className="volume-wrapper">
-            <button className="btn-icon" onClick={onToggleMute} style={{ width: 32, height: 32 }}>
+            <button
+              type="button"
+              className="btn-icon"
+              onClick={onToggleMute}
+              style={{ width: 32, height: 32 }}
+              title={isMuted || volume === 0 ? 'Unmute Audio' : 'Mute Audio'}
+              aria-label={isMuted || volume === 0 ? 'Unmute Audio' : 'Mute Audio'}
+            >
               {isMuted || volume === 0 ? <VolumeX size={16} /> : <Volume2 size={16} />}
             </button>
             <input
@@ -99,6 +117,7 @@ export function PlayerControls({
               value={isMuted ? 0 : volume}
               onChange={(e) => onVolumeChange(parseFloat(e.target.value))}
               className="volume-slider"
+              aria-label="Volume level"
             />
           </div>
 
@@ -124,6 +143,7 @@ export function PlayerControls({
                 cursor: 'pointer'
               }}
               title="Playback speed"
+              aria-label="Select playback speed"
             >
               <option value="0.5">0.5x</option>
               <option value="1">1.0x</option>
@@ -132,6 +152,24 @@ export function PlayerControls({
               <option value="2">2.0x</option>
             </select>
           ) : null}
+
+          {/* Subtitles CC Toggle */}
+          {hasSubtitles && (
+            <button
+              type="button"
+              className="btn-icon"
+              onClick={onToggleSubtitles}
+              title={showSubtitles ? 'Hide Subtitles' : 'Show Subtitles'}
+              aria-label={showSubtitles ? 'Hide Subtitles' : 'Show Subtitles'}
+              style={{
+                width: 32,
+                height: 32,
+                background: showSubtitles ? 'var(--accent-gradient)' : 'var(--bg-surface)'
+              }}
+            >
+              <Subtitles size={16} />
+            </button>
+          )}
 
           {/* Host status indicator */}
           {isHost ? (
@@ -144,23 +182,27 @@ export function PlayerControls({
 
           {/* Orientation Flip Toggle */}
           <button
+            type="button"
             className="btn-icon"
             onClick={onToggleFlip}
             title={isFlipped ? 'Unflip Video (Normal)' : 'Flip Video (Mirror)'}
+            aria-label={isFlipped ? 'Unflip Video (Normal)' : 'Flip Video (Mirror)'}
             style={{
               width: 32,
               height: 32,
               background: isFlipped ? 'var(--accent-gradient)' : 'var(--bg-surface)'
             }}
           >
-            🔄
+            <FlipHorizontal size={16} />
           </button>
 
           {/* Picture-in-Picture / Float Video button */}
           <button
+            type="button"
             className="btn-icon"
             onClick={onTogglePiP}
             title={isPiP ? 'Exit Floating Picture-in-Picture' : 'Float Video (Picture-in-Picture)'}
+            aria-label={isPiP ? 'Exit Floating Picture-in-Picture' : 'Float Video (Picture-in-Picture)'}
             style={{
               width: 32,
               height: 32,
@@ -171,7 +213,13 @@ export function PlayerControls({
           </button>
 
           {/* Fullscreen Button */}
-          <button className="btn-icon" onClick={onToggleFullscreen} title="Toggle Fullscreen">
+          <button
+            type="button"
+            className="btn-icon"
+            onClick={onToggleFullscreen}
+            title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+            aria-label={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+          >
             {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
           </button>
         </div>
