@@ -19,6 +19,7 @@ import SAMPLE_MOVIES from '../constants/sampleMovies';
 import useDocumentTitle from '../hooks/useDocumentTitle';
 import Footer from '../components/Common/Footer';
 import WatchVerseLogo from '../components/Common/WatchVerseLogo';
+import useBackendStatus from '../hooks/useBackendStatus';
 import '../styles/home.css';
 
 export function Home() {
@@ -27,6 +28,7 @@ export function Home() {
     'Synchronized video playback with real-time WebRTC audio and video, live chat, and host moderation controls.'
   );
 
+  const { status: backendStatus, isWaking, isReady, wake } = useBackendStatus();
   const [activeTab, setActiveTab] = useState('create'); // 'create' | 'join'
   const [usernameInput, setUsernameInput] = useState(() => localStorage.getItem('wv_username') || '');
   const [roomNameInput, setRoomNameInput] = useState('');
@@ -38,6 +40,7 @@ export function Home() {
   const navigate = useNavigate();
 
   const handleCreateRoom = (presetMovie = null) => {
+    wake(); // ensure wake signal is sent
     const chosenMovie = presetMovie || selectedMovie;
     const finalId = uuidv4().slice(0, 8);
     const finalUsername = usernameInput.trim() || `Host-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -56,6 +59,7 @@ export function Home() {
   const handleJoinRoom = (e) => {
     e.preventDefault();
     if (!roomIdInput.trim()) return;
+    wake(); // ensure wake signal is sent
     const finalId = roomIdInput.trim().replace(/^.*\/room\//, ''); // handle pasted full URLs
     const finalUsername = usernameInput.trim() || `Viewer-${Math.floor(1000 + Math.random() * 9000)}`;
     localStorage.setItem('wv_username', finalUsername);
@@ -76,9 +80,22 @@ export function Home() {
             <WatchVerseLogo size={32} />
           </Link>
 
-          <div className="nav-status-indicator">
-            <span className="status-dot"></span>
-            <span>Real-Time Sync Engine</span>
+          <div
+            className="nav-status-indicator"
+            title={
+              backendStatus === 'ready'
+                ? 'Backend server is active & responsive'
+                : 'Pinging backend health endpoint (warming up cold start)...'
+            }
+          >
+            <span className={`status-dot ${backendStatus}`}></span>
+            <span>
+              {backendStatus === 'ready'
+                ? 'Sync Engine Active'
+                : backendStatus === 'waking' || backendStatus === 'checking'
+                ? 'Waking Server...'
+                : 'Connecting...'}
+            </span>
           </div>
         </div>
       </header>
